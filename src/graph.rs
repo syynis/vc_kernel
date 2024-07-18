@@ -107,4 +107,8 @@ impl Graph {
     pub fn size(&self) -> usize {
         self.neighbors.len()
     }
+
+    pub fn has_edge(&self, v: usize, u: usize) -> bool {
+        self.neighbors[v].iter().any(|&x| x == u)
+    }
 }
