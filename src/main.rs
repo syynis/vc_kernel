@@ -1,6 +1,8 @@
 use std::path::Path;
 
 use graph::Graph;
+use isomorphism::isomorphic;
+use itertools::Itertools;
 use solve::{branch, Solution};
 
 pub mod graph;
@@ -19,5 +21,11 @@ fn main() {
             .enumerate()
             .filter(|&(_, x)| *x)
             .map(|(v, _)| v)
+            .collect_vec()
     );
+
+    let g1 = Graph::read(Path::new(&String::from("iso1.txt")));
+    let g2 = Graph::read(Path::new(&String::from("iso2.txt")));
+
+    println!("isomorphic {}", isomorphic(&g1, &g2));
 }

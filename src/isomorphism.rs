@@ -30,9 +30,11 @@ pub fn isomorphic(g1: &Graph, g2: &Graph) -> bool {
         println!("Not isomorphic, degrees don't match");
         return false;
     }
+
     let mut isomorphism = Isomorphism::new();
     isomorphic_recursive(
         g1,
+        g2,
         &degrees1,
         &degrees2,
         &mut degrees1.iter().peekable(),
@@ -40,19 +42,19 @@ pub fn isomorphic(g1: &Graph, g2: &Graph) -> bool {
     )
 }
 
-pub fn isomorphic_recursive(
+fn isomorphic_recursive(
     g1: &Graph,
+    g2: &Graph,
     degrees1: &DegreeMap,
     degrees2: &DegreeMap,
     current: &mut Peekable<Iter<u32, Vec<usize>>>,
     isomorphism: &mut Isomorphism,
 ) -> bool {
-    if current.peek().unwrap().0 == degrees1.iter().last().unwrap().0 {
-        for (degree, vertices) in degrees1.iter() {
+    if current.peek().is_none() {
+        for (_, vertices) in degrees1.iter() {
             for v in vertices.iter() {
                 for n in &g1.neighbors[*v] {
-                    if !g1.has_edge(isomorphism[v], isomorphism[n]) {
-                        println!("Not isomorphic, edges don't match");
+                    if !g2.has_edge(*isomorphism.get(v).unwrap(), *isomorphism.get(n).unwrap()) {
                         return false;
                     }
                 }
@@ -61,15 +63,14 @@ pub fn isomorphic_recursive(
         true
     } else {
         let vs1 = current.peek().unwrap().1;
-        let mut vs2 = degrees2.get(current.peek().unwrap().0).unwrap().clone();
-        vs2.sort();
+        let vs2 = degrees2.get(current.peek().unwrap().0).unwrap().clone();
 
-        for permutation in vs2.iter().permutations(vs2.len()) {
+        for _ in vs2.iter().permutations(vs2.len()) {
             for (i, j) in vs1.iter().zip(vs2.iter()) {
                 isomorphism.insert(*i, *j);
             }
             current.next();
-            if isomorphic_recursive(g1, degrees1, degrees2, current, isomorphism) {
+            if isomorphic_recursive(g1, g2, degrees1, degrees2, current, isomorphism) {
                 return true;
             }
         }
