@@ -7,6 +7,7 @@ use solve::{branch, Solution};
 
 pub mod graph;
 pub mod isomorphism;
+pub mod profile;
 pub mod solve;
 
 fn main() {
@@ -28,4 +29,13 @@ fn main() {
     let g2 = Graph::read(Path::new(&String::from("iso2.txt")));
 
     println!("isomorphic {}", isomorphic(&g1, &g2));
+
+    let profile_searcher =
+        profile::ProfileSearcher::new(Path::new(&String::from("profile4-2.txt")));
+    let profile = profile_searcher.search();
+    println!("Original {:?}", profile);
+    let profile_searcher =
+        profile::ProfileSearcher::new(Path::new(&String::from("profile4-2-r.txt")));
+    let profile = profile_searcher.search();
+    println!("Reduced  {:?}", profile);
 }

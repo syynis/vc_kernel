@@ -5,7 +5,7 @@ use std::{
 
 use itertools::Itertools;
 
-use crate::graph::Graph;
+use crate::graph::{AdjMatrix, Graph};
 
 type DegreeMap = HashMap<u32, Vec<usize>>;
 type Isomorphism = HashMap<usize, usize>;
@@ -77,4 +77,11 @@ fn isomorphic_recursive(
 
         false
     }
+}
+
+pub fn enumerate_non_isomorphic(num_v: usize) -> Vec<Graph> {
+    let m = AdjMatrix::new(num_v);
+    let mut created = Vec::new();
+
+    created
 }

@@ -45,14 +45,18 @@ impl Solution {
     pub fn in_sol(&self, v: usize) -> bool {
         self.flag[v]
     }
+
+    pub fn size(&self) -> u32 {
+        self.size
+    }
 }
 
-fn select_vertex(g: &mut Graph, v: usize, sol: &mut Solution) {
+pub fn select_vertex(g: &mut Graph, v: usize, sol: &mut Solution) {
     sol.include(v);
     g.invalidate_vertex(v);
 }
 
-fn unselect_vertex(g: &mut Graph, v: usize, sol: &mut Solution) {
+pub fn unselect_vertex(g: &mut Graph, v: usize, sol: &mut Solution) {
     sol.exclude(v);
     g.revalidate_vertex(v);
 }
