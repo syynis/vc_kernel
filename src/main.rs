@@ -1,7 +1,7 @@
 use std::path::Path;
 
 use graph::Graph;
-use isomorphism::isomorphic;
+use isomorphism::{enumerate_non_isomorphic, isomorphic};
 use itertools::Itertools;
 use solve::{branch, Solution};
 
@@ -38,4 +38,6 @@ fn main() {
         profile::ProfileSearcher::new(Path::new(&String::from("profile4-2-r.txt")));
     let profile = profile_searcher.search();
     println!("Reduced  {:?}", profile);
+
+    let iso3 = enumerate_non_isomorphic(4);
 }

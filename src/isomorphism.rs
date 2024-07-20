@@ -23,10 +23,13 @@ pub fn isomorphic(g1: &Graph, g2: &Graph) -> bool {
         degrees2.entry(g2.degree(v)).or_default().push(v);
     }
 
-    if degrees1
-        .iter()
-        .any(|(degree, vs1)| degrees2[degree].len() != vs1.len())
-    {
+    if degrees1.iter().any(|(degree, vs1)| {
+        if let Some(degree_verts) = degrees2.get(degree) {
+            degree_verts.len() != vs1.len()
+        } else {
+            true
+        }
+    }) {
         println!("Not isomorphic, degrees don't match");
         return false;
     }
@@ -80,8 +83,22 @@ fn isomorphic_recursive(
 }
 
 pub fn enumerate_non_isomorphic(num_v: usize) -> Vec<Graph> {
-    let m = AdjMatrix::new(num_v);
+    let mut m = AdjMatrix::new(num_v);
     let mut created = Vec::new();
 
+    loop {
+        let g = Graph::from(&m);
+        if created.iter().all(|c| !isomorphic(&g, c)) {
+            created.push(g);
+        }
+
+        if !m.advance() {
+            break;
+        }
+    }
+
+    for g in &created {
+        println!("{:?}", g);
+    }
     created
 }

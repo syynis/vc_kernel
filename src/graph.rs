@@ -2,6 +2,7 @@ use std::{collections::HashMap, fs::read_to_string, path::Path};
 
 use itertools::Itertools;
 
+#[derive(Debug)]
 pub struct AdjMatrix {
     m: Vec<bool>,
     pub size: usize,
@@ -19,9 +20,34 @@ impl AdjMatrix {
         assert!(v <= u);
         self.m[v * self.size + u]
     }
+
+    pub fn set_edge(&mut self, v: usize, u: usize, val: bool) {
+        assert!(v <= u);
+        self.m[v * self.size + u] = val;
+    }
+
+    pub fn advance(&mut self) -> bool {
+        let mut j = 0;
+        for i in 0..self.size {
+            j = i + 1;
+            while j < self.size {
+                if !self.has_edge(i, j) {
+                    self.set_edge(i, j, true);
+                    break;
+                } else {
+                    self.set_edge(i, j, false);
+                }
+                j += 1;
+            }
+            if j < self.size {
+                break;
+            }
+        }
+        j < self.size
+    }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Graph {
     pub neighbors: Vec<Vec<usize>>,
     degrees: Vec<u32>,
@@ -31,14 +57,24 @@ pub struct Graph {
     pub vertices: u32,
 }
 
-impl From<AdjMatrix> for Graph {
-    fn from(value: AdjMatrix) -> Self {
-        todo!()
+impl From<&AdjMatrix> for Graph {
+    fn from(value: &AdjMatrix) -> Self {
+        let mut g = Graph::empty();
+        let size = value.size;
+        (0..size).for_each(|i| g.add_vertex(format!("{}", i)));
+        for i in 0..size {
+            for j in (i + 1)..size {
+                if value.has_edge(i, j) {
+                    g.add_edge(i, j);
+                }
+            }
+        }
+        g
     }
 }
 
-impl From<&str> for Graph {
-    fn from(value: &str) -> Self {
+impl From<String> for Graph {
+    fn from(value: String) -> Self {
         let mut map: HashMap<String, usize> = HashMap::new();
         let mut graph = Self::empty();
         value.trim().split('\n').for_each(|e| {
@@ -81,7 +117,7 @@ impl Graph {
 
     pub fn read(file: &Path) -> Self {
         let edgelist = read_to_string(file).unwrap();
-        Self::from(edgelist.as_ref())
+        Self::from(edgelist)
     }
 
     pub fn add_vertex(&mut self, name: String) {

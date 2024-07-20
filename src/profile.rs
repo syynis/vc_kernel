@@ -1,5 +1,3 @@
-use std::collections::HashMap;
-
 use itertools::Itertools;
 
 use crate::{
@@ -48,7 +46,7 @@ impl ProfileSearcher {
         let file_content = std::fs::read_to_string(file).unwrap();
         let (header, edge_list) = file_content.split_once('\n').unwrap();
 
-        let g = Graph::from(edge_list);
+        let g = Graph::from(edge_list.to_owned());
         let border = header
             .split_whitespace()
             .map(|name| g.get_name(name.to_owned()))
@@ -65,18 +63,18 @@ impl ProfileSearcher {
             let mut gprime = self.g.clone();
             let mut s = Solution::new(&gprime);
             let mut best = Solution::max(&gprime);
-            for i in 0..profile_size {
-                if border[i] {
-                    gprime.invalidate_vertex(self.border[i])
+            border.iter().enumerate().for_each(|(idx, border_state)| {
+                if *border_state {
+                    gprime.invalidate_vertex(self.border[idx])
                 } else {
-                    for n in gprime.neighbors[self.border[i]].clone() {
+                    for n in gprime.neighbors[self.border[idx]].clone() {
                         if gprime.valid[n] {
                             select_vertex(&mut gprime, n, &mut s);
                         }
                     }
-                    gprime.invalidate_vertex(self.border[i]);
+                    gprime.invalidate_vertex(self.border[idx]);
                 }
-            }
+            });
             branch(&mut gprime, &mut s, &mut best);
             res[index] = best.size();
             index += 1;
