@@ -1,7 +1,8 @@
 use itertools::Itertools;
 
 use crate::{
-    graph::Graph,
+    graph::{AdjMatrix, Graph},
+    isomorphism::enumerate_non_isomorphic,
     solve::{branch, select_vertex, Solution},
 };
 
@@ -29,7 +30,7 @@ impl std::fmt::Display for Profile {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let size = self.0.len().trailing_zeros();
         self.0.chunks(size as usize).for_each(|c| {
-            writeln!(f, "{:?}", c.to_owned());
+            let _ = writeln!(f, "{:?}", c.to_owned());
         });
         Ok(())
     }
@@ -42,14 +43,18 @@ pub struct ProfileSearcher {
 }
 
 impl ProfileSearcher {
-    pub fn new(file: &std::path::Path) -> Self {
+    pub fn new(g: Graph, border: Vec<usize>) -> Self {
+        Self { g, border }
+    }
+
+    pub fn load(file: &std::path::Path) -> Self {
         let file_content = std::fs::read_to_string(file).unwrap();
         let (header, edge_list) = file_content.split_once('\n').unwrap();
 
         let g = Graph::from(edge_list.to_owned());
         let border = header
             .split_whitespace()
-            .map(|name| g.get_name(name.to_owned()))
+            .map(|name| g.name_id(name.to_owned()))
             .collect_vec();
         ProfileSearcher { g, border }
     }
@@ -83,6 +88,46 @@ impl ProfileSearcher {
             }
         }
         Profile(res)
+    }
+    pub fn search_equivalencies(&self, profile: &Profile) -> Vec<Graph> {
+        let mut created = Vec::new();
+
+        for iso_graph in enumerate_non_isomorphic(self.g.size() - self.border.len()) {
+            let mut to_solve = iso_graph.clone();
+            let mut sol = Solution::new(&iso_graph);
+            let mut best = Solution::max(&iso_graph);
+            branch(&mut to_solve, &mut sol, &mut best);
+            if best.size() <= *profile.0.last().unwrap() {
+                let mut bipartite = AdjMatrix::new(self.g.size());
+                loop {
+                    let mut equiv_candidate = iso_graph.clone();
+                    let split = self.g.size() - self.border.len();
+                    for i in 0..self.border.len() {
+                        equiv_candidate.add_vertex(self.g.id_name(self.border[i]));
+                    }
+                    for i in 0..split {
+                        for j in split..split + self.border.len() {
+                            if bipartite.has_edge(i, j) {
+                                equiv_candidate.add_edge(i, j);
+                            }
+                        }
+                    }
+
+                    let searcher =
+                        ProfileSearcher::new(equiv_candidate.clone(), self.border.clone());
+                    let other_profile = searcher.search();
+
+                    if profile.eq(&other_profile) {
+                        created.push(equiv_candidate.clone());
+                    }
+
+                    if !bipartite.next_bipartite(split) {
+                        break;
+                    }
+                }
+            }
+        }
+        created
     }
 }
 

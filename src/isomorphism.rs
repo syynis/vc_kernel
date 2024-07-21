@@ -12,7 +12,7 @@ type Isomorphism = HashMap<usize, usize>;
 
 pub fn isomorphic(g1: &Graph, g2: &Graph) -> bool {
     if g1.size() != g2.size() {
-        println!("Not isomorphic {} =/= {}", g1.size(), g2.size());
+        // println!("Not isomorphic {} =/= {}", g1.size(), g2.size());
         return false;
     }
 
@@ -30,7 +30,7 @@ pub fn isomorphic(g1: &Graph, g2: &Graph) -> bool {
             true
         }
     }) {
-        println!("Not isomorphic, degrees don't match");
+        // println!("Not isomorphic, degrees don't match");
         return false;
     }
 

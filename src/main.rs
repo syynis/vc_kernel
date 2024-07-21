@@ -31,13 +31,21 @@ fn main() {
     println!("isomorphic {}", isomorphic(&g1, &g2));
 
     let profile_searcher =
-        profile::ProfileSearcher::new(Path::new(&String::from("profile4-2.txt")));
+        profile::ProfileSearcher::load(Path::new(&String::from("profile4-2.txt")));
     let profile = profile_searcher.search();
     println!("Original {:?}", profile);
     let profile_searcher =
-        profile::ProfileSearcher::new(Path::new(&String::from("profile4-2-r.txt")));
+        profile::ProfileSearcher::load(Path::new(&String::from("profile4-2-r.txt")));
+    let profile = profile_searcher.search();
+    println!("Reduced  {:?}", profile);
+    let profile_searcher =
+        profile::ProfileSearcher::load(Path::new(&String::from("profile5-4.txt")));
+    let profile = profile_searcher.search();
+    println!("Reduced  {:?}", profile);
+    let profile_searcher =
+        profile::ProfileSearcher::load(Path::new(&String::from("profile2-1.txt")));
     let profile = profile_searcher.search();
     println!("Reduced  {:?}", profile);
 
-    let iso3 = enumerate_non_isomorphic(4);
+    enumerate_non_isomorphic(4);
 }

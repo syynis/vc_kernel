@@ -45,6 +45,27 @@ impl AdjMatrix {
         }
         j < self.size
     }
+
+    pub fn next_bipartite(&mut self, split_idx: usize) -> bool {
+        let mut j = split_idx;
+
+        for i in 0..split_idx {
+            j = split_idx;
+            while j < self.size {
+                if !self.has_edge(i, j) {
+                    self.set_edge(i, j, true);
+                    break;
+                } else {
+                    self.set_edge(i, j, false);
+                }
+                j += 1;
+            }
+            if j < self.size {
+                break;
+            }
+        }
+        j < self.size
+    }
 }
 
 #[derive(Clone, Debug)]
@@ -111,8 +132,12 @@ impl Graph {
         self.id_name_map = map;
     }
 
-    pub fn get_name(&self, name: String) -> usize {
+    pub fn name_id(&self, name: String) -> usize {
         self.id_name_map[&name]
+    }
+
+    pub fn id_name(&self, id: usize) -> String {
+        self.names[id].clone()
     }
 
     pub fn read(file: &Path) -> Self {
