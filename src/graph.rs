@@ -205,4 +205,13 @@ impl Graph {
     pub fn has_edge(&self, v: usize, u: usize) -> bool {
         self.neighbors[v].iter().any(|&x| x == u)
     }
+
+    pub fn num_edges(&self) -> u32 {
+        self.valid
+            .iter()
+            .enumerate()
+            .map(|(id, &x)| if x { self.degree(id) } else { 0 })
+            .sum::<u32>()
+            / 2
+    }
 }

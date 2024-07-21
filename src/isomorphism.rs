@@ -35,14 +35,15 @@ pub fn isomorphic(g1: &Graph, g2: &Graph) -> bool {
     }
 
     let mut isomorphism = Isomorphism::new();
-    isomorphic_recursive(
+    let is = isomorphic_recursive(
         g1,
         g2,
         &degrees1,
         &degrees2,
         &mut degrees1.iter().peekable(),
         &mut isomorphism,
-    )
+    );
+    is
 }
 
 fn isomorphic_recursive(
@@ -53,6 +54,7 @@ fn isomorphic_recursive(
     current: &mut Peekable<Iter<u32, Vec<usize>>>,
     isomorphism: &mut Isomorphism,
 ) -> bool {
+    // We are done building the isomorphism. Check if the mapping is correct
     if current.peek().is_none() {
         for (_, vertices) in degrees1.iter() {
             for v in vertices.iter() {
@@ -65,12 +67,13 @@ fn isomorphic_recursive(
         }
         true
     } else {
+        // Get the next degree bucket
         let vs1 = current.peek().unwrap().1;
         let vs2 = degrees2.get(current.peek().unwrap().0).unwrap().clone();
 
-        for _ in vs2.iter().permutations(vs2.len()) {
-            for (i, j) in vs1.iter().zip(vs2.iter()) {
-                isomorphism.insert(*i, *j);
+        for permutation in vs2.iter().permutations(vs2.len()) {
+            for (i, j) in vs1.iter().zip(permutation.iter()) {
+                isomorphism.insert(*i, **j);
             }
             current.next();
             if isomorphic_recursive(g1, g2, degrees1, degrees2, current, isomorphism) {
@@ -88,7 +91,7 @@ pub fn enumerate_non_isomorphic(num_v: usize) -> Vec<Graph> {
 
     loop {
         let g = Graph::from(&m);
-        if created.iter().all(|c| !isomorphic(&g, c)) {
+        if !created.iter().any(|c| isomorphic(&g, c)) {
             created.push(g);
         }
 
@@ -97,8 +100,13 @@ pub fn enumerate_non_isomorphic(num_v: usize) -> Vec<Graph> {
         }
     }
 
-    for g in &created {
-        println!("{:?}", g);
-    }
     created
+}
+
+pub fn enumerate_non_isomorphic_with_edges(num_v: usize, num_e: usize) -> Vec<Graph> {
+    enumerate_non_isomorphic(num_v)
+        .iter()
+        .filter(|g| g.num_edges() == num_e as u32)
+        .cloned()
+        .collect_vec()
 }

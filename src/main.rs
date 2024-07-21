@@ -1,7 +1,7 @@
 use std::path::Path;
 
 use graph::Graph;
-use isomorphism::{enumerate_non_isomorphic, isomorphic};
+use isomorphism::{enumerate_non_isomorphic, enumerate_non_isomorphic_with_edges, isomorphic};
 use itertools::Itertools;
 use solve::{branch, Solution};
 
@@ -11,41 +11,34 @@ pub mod profile;
 pub mod solve;
 
 fn main() {
-    let mut g = Graph::read(Path::new(&String::from("test.txt")));
-    let mut curr = Solution::new(&g);
-    let mut best = Solution::max(&g);
-    branch(&mut g, &mut curr, &mut best);
-    println!(
-        "{:?}",
-        best.flag
-            .iter()
-            .enumerate()
-            .filter(|&(_, x)| *x)
-            .map(|(v, _)| v)
-            .collect_vec()
-    );
-
-    let g1 = Graph::read(Path::new(&String::from("iso1.txt")));
-    let g2 = Graph::read(Path::new(&String::from("iso2.txt")));
-
-    println!("isomorphic {}", isomorphic(&g1, &g2));
-
     let profile_searcher =
         profile::ProfileSearcher::load(Path::new(&String::from("profile4-2.txt")));
     let profile = profile_searcher.search();
     println!("Original {:?}", profile);
-    let profile_searcher =
-        profile::ProfileSearcher::load(Path::new(&String::from("profile4-2-r.txt")));
-    let profile = profile_searcher.search();
-    println!("Reduced  {:?}", profile);
-    let profile_searcher =
-        profile::ProfileSearcher::load(Path::new(&String::from("profile5-4.txt")));
-    let profile = profile_searcher.search();
-    println!("Reduced  {:?}", profile);
-    let profile_searcher =
-        profile::ProfileSearcher::load(Path::new(&String::from("profile2-1.txt")));
-    let profile = profile_searcher.search();
-    println!("Reduced  {:?}", profile);
 
-    enumerate_non_isomorphic(4);
+    println!("Non isomorphic");
+    enumerate_non_isomorphic(5)
+        .iter()
+        .for_each(|g| println!("{:?}", g));
+
+    println!("Non reduceable non isomorphic");
+    non_reduceable_ismorphisms(5)
+        .iter()
+        .for_each(|g| println!("{:?}", g));
+}
+
+fn non_reduceable_ismorphisms(num_v: usize) -> Vec<Graph> {
+    enumerate_non_isomorphic(num_v)
+        .iter()
+        .filter(|g| {
+            let dominate = g.neighbors.iter().any(|adj| adj.len() == num_v - 1);
+            let funnel = (0..num_v).any(|i| {
+                let mut g_e = (*g).clone();
+                g_e.invalidate_vertex(i);
+                g_e.num_edges() as usize == (num_v - 1) * (num_v - 2) / 2
+            });
+            !(dominate || funnel)
+        })
+        .cloned()
+        .collect_vec()
 }
